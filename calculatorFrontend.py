@@ -8,8 +8,6 @@
 
 
 from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QHBoxLayout, QVBoxLayout, QLineEdit
-from PySide6.QtCore import QPropertyAnimation, Signal, Property
-from PySide6.QtGui import QColor, QFocusEvent
 import os
 import sys
 
@@ -35,6 +33,8 @@ class CustomCalcButton(QPushButton):
     color: white; }
     QPushButton:hover {background-color:#30373c}
     QPushButton:pressed {background-color:#2d3339}'''
+    CUSTOM_VALUES = {"background-color": "#E29578", "text-color": "black", "hover": "#FFDDD2", "pressed": "#FFDDD2"}
+    CUSTOM_STYLE = DEFAULT_STYLE.replace("#343a40", CUSTOM_VALUES['background-color']).replace("white", CUSTOM_VALUES['text-color']).replace("#30373c", CUSTOM_VALUES['hover']).replace("#2d3339", CUSTOM_VALUES['pressed'])
     CE_STYLE = '''QPushButton { 
     background-color:#dc3545;
     border-style: outset;
@@ -49,12 +49,14 @@ class CustomCalcButton(QPushButton):
     color: white; }
     QPushButton:hover {background-color:#d93040}
     QPushButton:pressed {background-color:#d52030}'''
+    CUSTOM_SPECIAL = {"background-color": "#E29578", "text-color": "black", "hover": "#FFDDD2", "pressed": "#FFDDD2"}
+    CUSTOM_RED = CE_STYLE.replace("#dc3545", CUSTOM_SPECIAL["background-color"]).replace("white", CUSTOM_SPECIAL["text-color"]).replace("#d93040", CUSTOM_SPECIAL["hover"]).replace("#d52030", CUSTOM_SPECIAL["pressed"])
 
     def __init__(self, text='button', red=False, calculator=None):
         super().__init__()
-        self.setStyleSheet(self.DEFAULT_STYLE)
+        self.setStyleSheet(self.CUSTOM_STYLE)
         if red:
-            self.setStyleSheet(self.CE_STYLE)
+            self.setStyleSheet(self.CUSTOM_RED)
         self.setText(text)
         self.calculator = calculator
         self.isSubmitButton = False if text != '=' else True
@@ -65,7 +67,7 @@ class CustomCalcButton(QPushButton):
             self.calculator.clearDisplay()
             self.calculator.needsToBeCleared = False
         if self.calculator != None:
-            self.calculator.addText(self.text())
+            self.calculator.addText(self.text() if self.text() != 'n²' else "²")
         if self.isSubmitButton:
             self.calculator.backspace(1)
             self.calculator.sendBackend()
@@ -73,18 +75,19 @@ class CustomCalcButton(QPushButton):
             self.calculator.backspace()
 
 class Calculator(QMainWindow):
-    WINDOW_STYLE = '''QMainWindow { background-color:#3f3f3f; }'''
-    DISPLAY_STYLE = '''QLineEdit { background-color:#2f2f2f; border-radius: 4px; border: #0f0f0f; min-height:16px; max-height: 128px; color: white; font: bold 14px; }'''
+    WINDOW_STYLE = '''QMainWindow { background-color:#3f3f3f;}
+    QLineEdit { background-color:#2f2f2f; border-radius: 4px; border: #0f0f0f; min-height:16px; max-height: 128px; color: white; font: bold 14px; }'''
+    CUSTOM_VALUES = {"window-background": "#EDF6F9", "label-background": "#83C5BE", "label-text-color": "black"}
+    CUSTOM_STYLE = WINDOW_STYLE.replace("#3f3f3f", CUSTOM_VALUES['window-background']).replace("#2f2f2f", CUSTOM_VALUES['label-background']).replace("white", CUSTOM_VALUES['label-text-color'])
     def __init__(self, backend=False):
         super().__init__()
         self.needsToBeCleared = False
 
         self.setWindowTitle('Calculator')
-        self.setStyleSheet(self.WINDOW_STYLE)
+        self.setStyleSheet(self.CUSTOM_STYLE)
 
         self.display = QLineEdit()
         self.display.setReadOnly(False)
-        self.display.setStyleSheet(self.DISPLAY_STYLE)
 
         # Row one is the display, don't need an HBox for that
         self.row2 = QHBoxLayout()
