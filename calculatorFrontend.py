@@ -1,10 +1,6 @@
 # Frontend class by Andrew Eno
 # Created on November 19, 2023
-
-# BackendClass expects one argument, a string such as BackendClass('14 + 2')
-# Converting it to string makes it return the answer
-# Add parenthesis for sure
-# Possibly square root and square, pehaps use unicode
+# Modified basically often enough that I got tired of forgetting to keep a log
 
 
 from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QHBoxLayout, QVBoxLayout, QLineEdit
@@ -33,7 +29,7 @@ class CustomCalcButton(QPushButton):
     color: white; }
     QPushButton:hover {background-color:#30373c}
     QPushButton:pressed {background-color:#2d3339}'''
-    CUSTOM_VALUES = {"background-color": "#E29578", "text-color": "black", "hover": "#FFDDD2", "pressed": "#FFDDD2"}
+    CUSTOM_VALUES = {"background-color": "#bababa", "text-color": "black", "hover": "#aaaaaa", "pressed": "#9a9a9a"}
     CUSTOM_STYLE = DEFAULT_STYLE.replace("#343a40", CUSTOM_VALUES['background-color']).replace("white", CUSTOM_VALUES['text-color']).replace("#30373c", CUSTOM_VALUES['hover']).replace("#2d3339", CUSTOM_VALUES['pressed'])
     CE_STYLE = '''QPushButton { 
     background-color:#dc3545;
@@ -49,42 +45,49 @@ class CustomCalcButton(QPushButton):
     color: white; }
     QPushButton:hover {background-color:#d93040}
     QPushButton:pressed {background-color:#d52030}'''
-    CUSTOM_SPECIAL = {"background-color": "#E29578", "text-color": "black", "hover": "#FFDDD2", "pressed": "#FFDDD2"}
+    CUSTOM_SPECIAL = {"background-color": "#98ABCF", "text-color": "black", "hover": "#7289A5", "pressed": "#727980"}
     CUSTOM_RED = CE_STYLE.replace("#dc3545", CUSTOM_SPECIAL["background-color"]).replace("white", CUSTOM_SPECIAL["text-color"]).replace("#d93040", CUSTOM_SPECIAL["hover"]).replace("#d52030", CUSTOM_SPECIAL["pressed"])
+    buttons = []
 
-    def __init__(self, text='button', red=False, calculator=None):
+    def __init__(self, text='button', red=False, calculator=None, functionality=None): # Functionality should be a function
         super().__init__()
-        self.setStyleSheet(self.CUSTOM_STYLE)
-        if red:
-            self.setStyleSheet(self.CUSTOM_RED)
+        self.setStyleSheet(self.DEFAULT_STYLE)
+        self.red = red
+        if self.red:
+            self.setStyleSheet(self.CE_STYLE)
         self.setText(text)
         self.calculator = calculator
-        self.isSubmitButton = False if text != '=' else True
-        self.isBackButton = False if text != '⌫' else True
         self.clicked.connect(self.wasPressed)
+        self.functionality = functionality
+        self.buttons.append(self)
     def wasPressed(self):
+        '''executes when the button is pressed'''
         if self.calculator.needsToBeCleared:
             self.calculator.clearDisplay()
             self.calculator.needsToBeCleared = False
-        if self.calculator != None:
+        if self.calculator != None and self.functionality == None:
             self.calculator.addText(self.text() if self.text() != 'n²' else "²")
-        if self.isSubmitButton:
-            self.calculator.backspace(1)
-            self.calculator.sendBackend()
-        elif self.isBackButton:
-            self.calculator.backspace()
+        elif self.functionality != None: # If it has functionality more than just text
+            self.functionality()
+    def switchButtonsStyle(self):
+        '''Switches the style of a button between default and custom'''
+        for button in self.buttons:
+            if button.styleSheet() == self.DEFAULT_STYLE or button.styleSheet() == self.CE_STYLE:
+                button.setStyleSheet(self.CUSTOM_STYLE if not button.red else self.CUSTOM_RED)
+            else:
+                button.setStyleSheet(self.DEFAULT_STYLE if not button.red else self.CE_STYLE)
 
 class Calculator(QMainWindow):
     WINDOW_STYLE = '''QMainWindow { background-color:#3f3f3f;}
     QLineEdit { background-color:#2f2f2f; border-radius: 4px; border: #0f0f0f; min-height:16px; max-height: 128px; color: white; font: bold 14px; }'''
-    CUSTOM_VALUES = {"window-background": "#EDF6F9", "label-background": "#83C5BE", "label-text-color": "black"}
+    CUSTOM_VALUES = {"window-background": "#EFEFEF", "label-background": "#CFCFCF", "label-text-color": "black"}
     CUSTOM_STYLE = WINDOW_STYLE.replace("#3f3f3f", CUSTOM_VALUES['window-background']).replace("#2f2f2f", CUSTOM_VALUES['label-background']).replace("white", CUSTOM_VALUES['label-text-color'])
     def __init__(self, backend=False):
         super().__init__()
         self.needsToBeCleared = False
 
         self.setWindowTitle('Calculator')
-        self.setStyleSheet(self.CUSTOM_STYLE)
+        self.setStyleSheet(self.WINDOW_STYLE)
 
         self.display = QLineEdit()
         self.display.setReadOnly(False)
@@ -98,16 +101,16 @@ class Calculator(QMainWindow):
         self.row7 = QHBoxLayout()
         self.mainLayout = QVBoxLayout()
 
-        ceButton = CustomCalcButton("CE", True, calculator=self)
-        cButton = CustomCalcButton('C', calculator=self)
-        recipButton = CustomCalcButton('1/x', calculator=self)
-        delButton = CustomCalcButton('⌫', calculator=self)
+        ceButton = CustomCalcButton("Theme", True, calculator=self, functionality=self.changeTheme)
+        self.cButton = CustomCalcButton('CE', calculator=self, functionality=self.clearDisplay)
+        recipButton = CustomCalcButton('1/x', calculator=self, functionality=self.reciperical)
+        delButton = CustomCalcButton('⌫', calculator=self, functionality=self.backspace)
 
         divButton = CustomCalcButton('/', calculator=self)
         multButton = CustomCalcButton('*', calculator=self)
         addButton = CustomCalcButton('+', calculator=self)
         minusButton = CustomCalcButton('-', calculator=self)
-        equalsButton = CustomCalcButton('=', calculator=self)
+        equalsButton = CustomCalcButton('=', calculator=self, functionality=self.sendBackend)
         dotButton = CustomCalcButton('.', calculator=self)
 
         sqrtButton = CustomCalcButton("√", calculator=self)
@@ -129,7 +132,7 @@ class Calculator(QMainWindow):
         self.mainLayout.addWidget(self.display)
 
         self.row2.addWidget(ceButton)
-        self.row2.addWidget(cButton)
+        self.row2.addWidget(self.cButton)
         self.row2.addWidget(recipButton)
         self.row2.addWidget(delButton)
         self.mainLayout.addLayout(self.row2)
@@ -184,7 +187,14 @@ class Calculator(QMainWindow):
         self.display.setText("")
     def backspace(self, charsToDel=2):
         self.display.setText(self.display.text()[:len(self.display.text()) - charsToDel]) # Chars to del defaults to 2 because it is also deleting the backspace character
-
+    def changeTheme(self):
+        if self.styleSheet() == self.CUSTOM_STYLE:
+            self.setStyleSheet(self.WINDOW_STYLE)
+        else:
+            self.setStyleSheet(self.CUSTOM_STYLE)
+        self.cButton.switchButtonsStyle()
+    def reciperical(self):
+        self.display.setText(f"1/({self.display.text()})")
 app = QApplication(sys.argv)
 
 window = Calculator(BACKEND_EXISTS)
