@@ -1,7 +1,6 @@
 # Frontend class by Andrew Eno
 # Created on November 19, 2023
-# Modified basically often enough that I got tired of forgetting to keep a log
-
+# Modified often enough that I got annoyed by forgetting to keep a log
 
 from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QHBoxLayout, QVBoxLayout, QLineEdit
 import os
@@ -9,11 +8,14 @@ import sys
 
 BACKEND_EXISTS = False
 
+# This makes sure the backend exists
 if os.path.exists('BackendClass.py'):
     BACKEND_EXISTS = True
     from BackendClass import BackendClass
 
 class CustomCalcButton(QPushButton):
+    ''' CustomCalcButton is a class of QPushButton that contains special methods and styles for the buttons on the calculator '''
+    # These are the styles
     DEFAULT_STYLE = '''QPushButton { 
     background-color:#343a40;
     border-style: outset;
@@ -29,6 +31,7 @@ class CustomCalcButton(QPushButton):
     color: white; }
     QPushButton:hover {background-color:#30373c}
     QPushButton:pressed {background-color:#2d3339}'''
+    # The custom style is just a slightly modified default style
     CUSTOM_VALUES = {"background-color": "#bababa", "text-color": "black", "hover": "#aaaaaa", "pressed": "#9a9a9a"}
     CUSTOM_STYLE = DEFAULT_STYLE.replace("#343a40", CUSTOM_VALUES['background-color']).replace("white", CUSTOM_VALUES['text-color']).replace("#30373c", CUSTOM_VALUES['hover']).replace("#2d3339", CUSTOM_VALUES['pressed'])
     CE_STYLE = '''QPushButton { 
@@ -45,9 +48,10 @@ class CustomCalcButton(QPushButton):
     color: white; }
     QPushButton:hover {background-color:#d93040}
     QPushButton:pressed {background-color:#d52030}'''
+    # Same for this custom style, but this style is different to make an accent button
     CUSTOM_SPECIAL = {"background-color": "#98ABCF", "text-color": "black", "hover": "#7289A5", "pressed": "#727980"}
     CUSTOM_RED = CE_STYLE.replace("#dc3545", CUSTOM_SPECIAL["background-color"]).replace("white", CUSTOM_SPECIAL["text-color"]).replace("#d93040", CUSTOM_SPECIAL["hover"]).replace("#d52030", CUSTOM_SPECIAL["pressed"])
-    buttons = []
+    buttons = [] # This is where each button is added when they are initialized
 
     def __init__(self, text='button', red=False, calculator=None, functionality=None): # Functionality should be a function
         super().__init__()
@@ -57,9 +61,9 @@ class CustomCalcButton(QPushButton):
             self.setStyleSheet(self.CE_STYLE)
         self.setText(text)
         self.calculator = calculator
-        self.clicked.connect(self.wasPressed)
+        self.clicked.connect(self.wasPressed) # Connect the wasPressed method to the button's press
         self.functionality = functionality
-        self.buttons.append(self)
+        self.buttons.append(self) # Add self to the buttons list
     def wasPressed(self):
         '''executes when the button is pressed'''
         if self.calculator.needsToBeCleared:
@@ -71,19 +75,22 @@ class CustomCalcButton(QPushButton):
             self.functionality()
     def switchButtonsStyle(self):
         '''Switches the style of a button between default and custom'''
-        for button in self.buttons:
+        for button in self.buttons: # This is where the buttons list comes in handy, goes through each and toggles their theme from default to custom or back again
             if button.styleSheet() == self.DEFAULT_STYLE or button.styleSheet() == self.CE_STYLE:
                 button.setStyleSheet(self.CUSTOM_STYLE if not button.red else self.CUSTOM_RED)
             else:
                 button.setStyleSheet(self.DEFAULT_STYLE if not button.red else self.CE_STYLE)
 
 class Calculator(QMainWindow):
+    ''' Calculator class of QMainWindow is the window for the calculator, provides all the methods and things that are available to the buttons since it is passed as an argument to them '''
+    # Styles defined here again
     WINDOW_STYLE = '''QMainWindow { background-color:#3f3f3f;}
     QLineEdit { background-color:#2f2f2f; border-radius: 4px; border: #0f0f0f; min-height:16px; max-height: 128px; color: white; font: bold 14px; }'''
     CUSTOM_VALUES = {"window-background": "#EFEFEF", "label-background": "#CFCFCF", "label-text-color": "black"}
     CUSTOM_STYLE = WINDOW_STYLE.replace("#3f3f3f", CUSTOM_VALUES['window-background']).replace("#2f2f2f", CUSTOM_VALUES['label-background']).replace("white", CUSTOM_VALUES['label-text-color'])
     def __init__(self, backend=False):
         super().__init__()
+        # Lots of variable initializing here
         self.needsToBeCleared = False
 
         self.setWindowTitle('Calculator')
@@ -93,6 +100,7 @@ class Calculator(QMainWindow):
         self.display.setReadOnly(False)
 
         # Row one is the display, don't need an HBox for that
+        # This is all the layout stuff. Every button is added manually because that's how I started it and I don't want to refactor because it works fine :)
         self.row2 = QHBoxLayout()
         self.row3 = QHBoxLayout()
         self.row4 = QHBoxLayout()
@@ -174,9 +182,11 @@ class Calculator(QMainWindow):
         self.setCentralWidget(mainWidget)
     
     def addText(self, text):
+        ''' Add text to the text of this calculator's display '''
         self.display.setText(self.display.text() + "" + text)
 
     def sendBackend(self):
+        ''' Sends the display's text to the backend class to be processed, and display the value it returns '''
         if BACKEND_EXISTS:
             x = BackendClass(self.display.text())
             self.display.setText(str(x))
@@ -184,17 +194,23 @@ class Calculator(QMainWindow):
             print("Woopsie, there doesn't seem to be a backend class at the moment... ")
         self.needsToBeCleared = True
     def clearDisplay(self):
+        ''' Clears the display of all text '''
         self.display.setText("")
     def backspace(self, charsToDel=2):
+        ''' Takes one character out of the current text '''
         self.display.setText(self.display.text()[:len(self.display.text()) - charsToDel]) # Chars to del defaults to 2 because it is also deleting the backspace character
     def changeTheme(self):
+        ''' Changes the theme of the window itself '''
         if self.styleSheet() == self.CUSTOM_STYLE:
             self.setStyleSheet(self.WINDOW_STYLE)
         else:
             self.setStyleSheet(self.CUSTOM_STYLE)
         self.cButton.switchButtonsStyle()
     def reciperical(self):
+        ''' Replace the text of the display with it's reciperical '''
         self.display.setText(f"1/({self.display.text()})")
+
+# Initialize all the things
 app = QApplication(sys.argv)
 
 window = Calculator(BACKEND_EXISTS)
