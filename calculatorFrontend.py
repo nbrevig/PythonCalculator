@@ -1,6 +1,7 @@
 # Frontend class by Andrew Eno
 # Created on November 19, 2023
 # Modified often enough that I got annoyed by forgetting to keep a log
+# Finished on December 11, 2023
 
 from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QHBoxLayout, QVBoxLayout, QLineEdit
 import os
@@ -53,7 +54,7 @@ class CustomCalcButton(QPushButton):
     CUSTOM_RED = CE_STYLE.replace("#dc3545", CUSTOM_SPECIAL["background-color"]).replace("white", CUSTOM_SPECIAL["text-color"]).replace("#d93040", CUSTOM_SPECIAL["hover"]).replace("#d52030", CUSTOM_SPECIAL["pressed"])
     buttons = [] # This is where each button is added when they are initialized
 
-    def __init__(self, text='button', red=False, calculator=None, functionality=None): # Functionality should be a function
+    def __init__(self, text='button', red=False, calculator=None, functionality=None) -> None:
         super().__init__()
         self.setStyleSheet(self.DEFAULT_STYLE)
         self.red = red
@@ -64,7 +65,7 @@ class CustomCalcButton(QPushButton):
         self.clicked.connect(self.wasPressed) # Connect the wasPressed method to the button's press
         self.functionality = functionality
         self.buttons.append(self) # Add self to the buttons list
-    def wasPressed(self):
+    def wasPressed(self) -> None:
         '''executes when the button is pressed'''
         if self.calculator.needsToBeCleared:
             self.calculator.clearDisplay()
@@ -73,7 +74,7 @@ class CustomCalcButton(QPushButton):
             self.calculator.addText(self.text() if self.text() != 'n²' else "²")
         elif self.functionality != None: # If it has functionality more than just text
             self.functionality()
-    def switchButtonsStyle(self):
+    def switchButtonsStyle(self) -> None:
         '''Switches the style of a button between default and custom'''
         for button in self.buttons: # This is where the buttons list comes in handy, goes through each and toggles their theme from default to custom or back again
             if button.styleSheet() == self.DEFAULT_STYLE or button.styleSheet() == self.CE_STYLE:
@@ -88,7 +89,7 @@ class Calculator(QMainWindow):
     QLineEdit { background-color:#2f2f2f; border-radius: 4px; border: #0f0f0f; min-height:16px; max-height: 128px; color: white; font: bold 14px; }'''
     CUSTOM_VALUES = {"window-background": "#EFEFEF", "label-background": "#CFCFCF", "label-text-color": "black"}
     CUSTOM_STYLE = WINDOW_STYLE.replace("#3f3f3f", CUSTOM_VALUES['window-background']).replace("#2f2f2f", CUSTOM_VALUES['label-background']).replace("white", CUSTOM_VALUES['label-text-color'])
-    def __init__(self, backend=False):
+    def __init__(self, backend=False) -> None:
         super().__init__()
         # Lots of variable initializing here
         self.needsToBeCleared = False
@@ -139,8 +140,9 @@ class Calculator(QMainWindow):
 
         self.mainLayout.addWidget(self.display)
 
+        # Each of these sections is a row of buttons on the calculator
         self.row2.addWidget(ceButton)
-        self.row2.addWidget(self.cButton)
+        self.row2.addWidget(self.cButton) # cButton is special because we need at least one button that is accessable from all of the methods of the Calculator class
         self.row2.addWidget(recipButton)
         self.row2.addWidget(delButton)
         self.mainLayout.addLayout(self.row2)
@@ -175,37 +177,42 @@ class Calculator(QMainWindow):
         self.row7.addWidget(addButton)
         self.mainLayout.addLayout(self.row7)
 
+        # Finishing initialization, setting main layout and spacing
         mainWidget = QWidget()
         self.mainLayout.setSpacing(8)
         self.mainLayout.setContentsMargins(10, 10, 10, 10)
         mainWidget.setLayout(self.mainLayout)
         self.setCentralWidget(mainWidget)
     
-    def addText(self, text):
-        ''' Add text to the text of this calculator's display '''
+    def addText(self, text) -> None:
+        ''' Add text to the text of this calculator's display'''
         self.display.setText(self.display.text() + "" + text)
 
-    def sendBackend(self):
+    def sendBackend(self) -> None: # Very important
         ''' Sends the display's text to the backend class to be processed, and display the value it returns '''
         if BACKEND_EXISTS:
             x = BackendClass(self.display.text())
             self.display.setText(str(x))
         else:
-            print("Woopsie, there doesn't seem to be a backend class at the moment... ")
+            print("Woops, there doesn't seem to be a backend class at the moment... ")
         self.needsToBeCleared = True
-    def clearDisplay(self):
+
+    def clearDisplay(self) -> None:
         ''' Clears the display of all text '''
         self.display.setText("")
-    def backspace(self, charsToDel=2):
+
+    def backspace(self, charsToDel=2) -> None:
         ''' Takes one character out of the current text '''
         self.display.setText(self.display.text()[:len(self.display.text()) - charsToDel]) # Chars to del defaults to 2 because it is also deleting the backspace character
-    def changeTheme(self):
+    
+    def changeTheme(self) -> None:
         ''' Changes the theme of the window itself '''
         if self.styleSheet() == self.CUSTOM_STYLE:
             self.setStyleSheet(self.WINDOW_STYLE)
         else:
             self.setStyleSheet(self.CUSTOM_STYLE)
         self.cButton.switchButtonsStyle()
+    
     def reciperical(self):
         ''' Replace the text of the display with it's reciperical '''
         self.display.setText(f"1/({self.display.text()})")
