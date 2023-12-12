@@ -1,0 +1,7 @@
+Frontend bugs: 
+ - enter button doesn't perform the calculation
+ - whenever a calculation is performed, the display doesn't always clear properly after the first button press like it should
+
+Backend bugs: 
+ - exceptionally large numbers don't work sometimes
+ - parenthesis are not always handled correctly
