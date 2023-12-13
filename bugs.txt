@@ -1,7 +1,11 @@
 Frontend bugs: 
  - enter button doesn't perform the calculation
- - whenever a calculation is performed, the display doesn't always clear properly after the first button press like it should
+ - Using the text box sometimes causes some problems
+ - whenever a calculation is performed, the display doesn't always clear properly after the first button press like it should.
+ - Whenever entering a value that causes an error and then trying to use the text box to type another equation, the equation will always produce the error message unless you use the calculator buttons to reset it.
 
 Backend bugs: 
  - exceptionally large numbers don't work sometimes
  - parenthesis are not always handled correctly
+ - can not handle scientefic notation
+ - input has to be reletively perfect for it to not throw errors (can't have spaces in input)
