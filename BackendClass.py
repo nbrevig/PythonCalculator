@@ -4,21 +4,47 @@
 # 2023-7-12 - Added Parenthesis functionality and fixed previous bugs
 # 2023-10-12 - added square root and squared functionality Have not yet added error messages, 
 # 2023-11-12 - added testing, fixed negative numbers bug, added some error messages
+# 2023-11-12 - Actually fixed the negative numbers bug, added some doctests
 
 import re
 
 class BackendClass():
     def __init__(self, equation : str):
         """
-        >>> BackendClass('5+5')
+        >>> print(BackendClass('5+5'))
         10.0
-        >>> BackendClass('-5--5')
-        0
+        >>> print(BackendClass('-5--5'))
+        0.0
+        >>> print(BackendClass('2*3+4'))
+        10.0
+        >>> print(BackendClass('(2+3)*4'))
+        20.0
+        >>> print(BackendClass('3²'))
+        9.0
+        >>> print(BackendClass('√9'))
+        3.0
+        >>> print(BackendClass('2--(2*2)'))
+        6.0
+        >>> print(BackendClass('1.75²+2.54*5.25/√9'))
+        7.5075
+        >>> print(BackendClass('23+5+((8+8+5)+(2+5))+(2+2)'))
+        60.0
+        >>> print(BackendClass('2.5+1.5'))
+        4.0
+        >>> print(BackendClass('1.25*3'))
+        3.75
+        >>> print(BackendClass('(2.5+3.5)*2'))
+        12.0
+        >>> print(BackendClass('aa(2.5+3.5)*2'))
+        Error
         """
         self.recursionLimit = 0
         self.equation = equation
 
-        self.solution = self._getSolution(equation)
+        try:
+            self.solution = self._getSolution(equation)
+        except:
+            self.solution = "Error"
         #print(self.solution)
         
         #self.solveEquation(self.terms, self.operators)
@@ -54,27 +80,38 @@ class BackendClass():
             equation = equation[:openParenthesis] + solution + equation[closingParenthesis+1:]
             openParenthesis = equation.find('(')
         
+        equation = equation.replace('--','+')
+        equation = equation.replace('+-','-')
         terms = re.split('[+|\-|*|/]', equation)
 
+        
+
         equation = equation.replace('.', '')
+        
+        # index = 0
+        # while index != len(terms):
+        #     #handles negative terms
+        #     if terms[index] == '':
+        #         print(index)
+        #         terms[index+1] = '-' + terms[index+1]
+        #         terms.pop(index)
+        #         # if index > 0:
+        #         #     operators = operators[:index-1] + operators[index:]
+                
+        #         continue
+        #     print(index)
+        #     index += 1   
+
         operators = re.split('[0-9]', equation)
         operators.pop(0)
         operators.pop(-1)
         operators = ''.join(operators)
-        print(terms, operators)
+
+        if terms[0] == '':
+            terms[1] = '-' + terms[1]
+            terms.pop(0)
+
         
-        index = 0
-        tempTerms = []
-        while index != len(terms)-1:
-            #handles negative terms
-            if terms[index] == '':
-                #tempTerms.append('-' + terms[index+1])
-                terms[index+1] = '-' + terms[index+1]
-                terms.pop(index)
-                if index > 0:
-                    operators = operators[:index] + operators[index + 1:]
-                continue
-            index += 1       
 
         # handles squares and square roots
         for index in range(len(terms)):
@@ -82,7 +119,7 @@ class BackendClass():
             if terms[index][-1] == '²':
                 terms[index] = str(float(terms[index][:-1]) ** 2)
                 operators = operators[:index] + operators[index + 1:]
-            
+                
             # handles square rooted terms
             if terms[index][0] == '√':
                 terms[index] = str(float(terms[index][1:]) ** 0.5)
@@ -109,7 +146,7 @@ class BackendClass():
         if self.recursionLimit > 100000000:
             return 'Reached Recursion Limit'
 
-        print(terms, operators)
+        #print(terms, operators)
 
         if multiplicationIndex != -1 or divisionIndex != -1:
             if multiplicationIndex < divisionIndex and multiplicationIndex != -1 or divisionIndex == -1:
@@ -136,10 +173,10 @@ class BackendClass():
         return terms[0]
 
 if __name__ == "__main__":
-    #import doctest
-    #doctest.testmod()
-    print(BackendClass('1.75²--5-3+5--5+-5'))
-
+    import doctest
+    doctest.testmod()
+    #print(BackendClass('-5--5'))
+    
     """
     tests
     '-8+-5'
