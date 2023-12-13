@@ -3,7 +3,7 @@
 # 2023-30-11 - Created class and added +-*/ functionality to the _newEquation recursive function
 # 2023-7-12 - Added Parenthesis functionality and fixed previous bugs
 # 2023-10-12 - added square root and squared functionality Have not yet added error messages, 
-# 2023-11-12 - added testing, fixed negative numbers bug, added some error messages
+# 2023-11-12 - added testing, fixed negative numbers bug, added error messages
 # 2023-11-12 - Actually fixed the negative numbers bug, added some doctests
 
 import re
@@ -35,19 +35,35 @@ class BackendClass():
         3.75
         >>> print(BackendClass('(2.5+3.5)*2'))
         12.0
-        >>> print(BackendClass('aa(2.5+3.5)*2'))
-        Error
+        >>> print(BackendClass('-2--2--2--2--2+-2'))
+        4.0
+        >>> print(BackendClass('aa+(2.5+3.5)*2'))
+        An Unexpected Error Has Occured
+        >>> print(BackendClass('three time three'))
+        An Unexpected Error Has Occured
+        >>> print(BackendClass('2***5'))
+        An Unexpected Error Has Occured
         """
         self.recursionLimit = 0
         self.equation = equation
 
-        try:
-            self.solution = self._getSolution(equation)
-        except:
-            self.solution = "Error"
-        #print(self.solution)
+        errorMessages = self._errorHandler(equation)
+
+
+        if errorMessages == '':
+            try:
+                self.solution = self._getSolution(equation)
+            except:
+                self.solution = 'An Unexpected Error Has Occured'
+        else:
+            self.solution = errorMessages
+    
+    def _errorHandler(self, equation):
+        if equation.count('(') != equation.count(')'):
+            return 'Parenthesis not closed properly'
         
-        #self.solveEquation(self.terms, self.operators)
+        return ''
+        
     
     def __str__(self):
         return self.solution
@@ -87,20 +103,6 @@ class BackendClass():
         
 
         equation = equation.replace('.', '')
-        
-        # index = 0
-        # while index != len(terms):
-        #     #handles negative terms
-        #     if terms[index] == '':
-        #         print(index)
-        #         terms[index+1] = '-' + terms[index+1]
-        #         terms.pop(index)
-        #         # if index > 0:
-        #         #     operators = operators[:index-1] + operators[index:]
-                
-        #         continue
-        #     print(index)
-        #     index += 1   
 
         operators = re.split('[0-9]', equation)
         operators.pop(0)
@@ -176,23 +178,3 @@ if __name__ == "__main__":
     import doctest
     doctest.testmod()
     #print(BackendClass('-5--5'))
-    
-    """
-    tests
-    '-8+-5'
-    1.75²+2.54*5.25/√9
-    '-8*-5'
-    '-8*-5/5'
-    '-8--5+5*5/-3'
-    '(8+8+5)'
-    '(8.5+8+5)'
-    '((8+8+5))'
-    '(8+8)+(8+2)+(8+1)'
-    ((8+8+5))+(2+2)
-    ((8+8+5)+2)+(2+2)
-    ((8+8+5)+(2+2))+2
-    ((8+8+5)+(2+5))+(2+2)
-    23+5+((8+8+5)+(2+5))+(2+2)
-    √5
-    5²
-    """
